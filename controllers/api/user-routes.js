@@ -19,19 +19,18 @@ router.get('/:id', (req, res) => {
         attributes: { exclude: ['password'] },
         where: {
             id: req.params.id
-            },
+        },
         include: [
             {
                 model: Post,
                 attributes: ['id', 'title', 'post_url', 'created_at']
             },
-            // include the Comment model here:
             {
                 model: Comment,
                 attributes: ['id', 'comment_text', 'created_at'],
                 include: {
-                model: Post,
-                attributes: ['title']
+                    model: Post,
+                    attributes: ['title']
                 }
             },
             {
@@ -42,6 +41,17 @@ router.get('/:id', (req, res) => {
             }
         ]
     })
+    .then(dbUserData => {
+        if (!dbUserData) {
+            res.status(404).json({ message: 'No user found with this id' });
+            return;
+        }
+            res.json(dbUserData);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json(err);
+    });
 });
 
 router.post('/', withAuth, (req, res) => {
@@ -105,7 +115,7 @@ router.post('/logout', withAuth, (req, res) => {
     }
 });
 
-    router.put('/:id', withAuth, (req, res) => {
+router.put('/:id', withAuth, (req, res) => {
     // expects {username: 'Lernantino', email: 'lernantino@gmail.com', password: 'password1234'}
 
     // pass in req.body instead to only update what's passed through
@@ -115,20 +125,20 @@ router.post('/logout', withAuth, (req, res) => {
             id: req.params.id
         }
     })
-        .then(dbUserData => {
-        if (!dbUserData[0]) {
-            res.status(404).json({ message: 'No user found with this id' });
-            return;
-        }
-        res.json(dbUserData);
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json(err);
-        });
+    .then(dbUserData => {
+    if (!dbUserData[0]) {
+        res.status(404).json({ message: 'No user found with this id' });
+        return;
+    }
+    res.json(dbUserData);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json(err);
     });
+});
 
-    router.delete('/:id', (req, res) => {
+router.delete('/:id', (req, res) => {
     User.destroy({
         where: {
         id: req.params.id
